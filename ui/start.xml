@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MOML version="1.1.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.applusform.com/xsd/moml_ui_1.1.8.xsd">
+	<THEMES>
+		<THEME element="BUTTON" textColor="#ffffff" defaultImg="#0080ff" pressedImg="#008000" />
+	</THEMES>
+	
+	<UILAYOUT portrait="320,480" landscape="320,480">
+		<WINDOW layout="0,0,320,480" img="white" align="linear:vertical" padding="10,20,10,0">
+			<LABEL text="관광정보 검색 : "/>
+			
+			<WINDOW align="linear:subCenter">
+				<LABEL text="지역 : " />
+				<SPINNER id="area" layout="135,30" title="지역" dataList="//item" valuePath=".//code/text()" textPath=".//name/text()" onChange="function.updateSigungu(caller.value)"/>
+				<SPINNER id="sigungu" layout="135,30" title="시/군/구" dataList="//item" valuePath=".//code/text()" textPath=".//name/text()"/>
+			</WINDOW>
+			
+			<WINDOW align="linear:subCenter">
+				<LABEL text="타입 : " />
+				<SPINNER id="contentType" layout="150,30" title="타입" dataSource="contentTypeIds.xml" dataList="//item" valuePath=".//code/text()" textPath=".//name/text()"/>
+				<BUTTON layout="60,30" text="검색" onClick="function.search" />
+			</WINDOW>
+			
+			<WINDOW layout="300,350" align="relative">
+				<LIST2 id="tourList" layout="0,0,300,350" dataList="//item" img="lightsteelblue">
+					<LISTLAYOUT>
+						<BUTTON layout="0,0,300,60" img="transparent" pressedImg="#80a0ff" onClick="function.showOverview">
+							<WINDOW layout="5,5,75,50" defaultImg="{function.checkValue(xpath.evaluate('firstimage2/text()'))}"/>
+							<LABEL id="title" layout="90,5,200,15" text="{xpath.evaluate('title/text()')}" textAlign="vCenter" fontSize="12" />
+							<LABEL id="addr" layout="95,20,200,10" text="{xpath.evaluate('addr1/text()')} {xpath.evaluate('addr2/text()')}" textAlign="vCenter" fontSize="10" />
+							<BUTTON id="overview" layout="95,35,50,20" text="개요" onClick="function.showOverview"/>
+							<BUTTON id="map" layout="150,35,50,20" text="{function.checkValue(xpath.evaluate('mapx/text()')); '지도' }" onClick="function.showMap"/>
+							<BUTTON id="tel" layout="205,35,90,20" text="{function.checkValue(xpath.evaluate('tel/text()'))}" fontSize="8" onClick="appLauncher.openUri('tel:' + caller.text, '')"/>
+						</BUTTON>
+					</LISTLAYOUT>
+				</LIST2>
+				
+				<WINDOW id="detailMap" layout="0,0,300,350" visible="invisible" defaultImg="lightsteelblue" onClick="ignore">
+					<LABEL id="mapTitle" layout="0,0,300,30" textAlign="center" fontSize="15" defaultImg="#e0e0ff"/>
+					<WEBVIEW id="mapWebView" layout="10,30,280,280" controls="none"/>
+					<BUTTON layout="125,315,50,30" text="닫기" onClick="mapWebView.clear; detailMap.visible=false" />
+				</WINDOW>
+				
+				<WINDOW id="detailOverview" layout="0,0,300,350" visible="invisible" defaultImg="lightsteelblue" onClick="ignore">
+					<LABEL id="overviewTitle" layout="0,0,300,30" textAlign="center" fontSize="15" defaultImg="#e0e0ff"/>
+					<WEBVIEW id="overviewWebView" layout="10,30,280,280" controls="none"/>
+					<BUTTON layout="125,315,50,30" text="닫기" onClick="overviewWebView.clear; detailOverview.visible=false" />
+				</WINDOW>
+			</WINDOW>
+			
+			<LABEL text="자료제공 : 한국관광공사" />
+		</WINDOW>
+	</UILAYOUT>
+
+	<!-- https://www.data.go.kr 에서 오픈API - 국문 관광정보 서비스의 [SERVICE KEY]를 발급 받아야 합니다. -->
+	<!-- 다른 사람의 키를 사용할 경우 트래픽을 초과하거나 변경되면 동작하지 않게됩니다.-->
+	<CMD cmd="serviceKey = 'XAQRkAc4BBj5RWTWfdEX5Oc5ry0o4j74tmxD5R4HhJoegNLrNTlRZl6%2BCW%2BX%2BC28DAwBYq73UvcNcdB6n591bg%3D%3D'" />
+	<CMD cmd="appName = 'momlTourApiTest'" />
+	<CMD cmd="userVariable.commonParam = 'MobileOS=ETC&amp;MobileApp=' + appName + '&amp;numOfRows=99999&amp;ServiceKey=' + serviceKey"/>
+
+	<!-- 로딩되면 지역 코드 업데이트.-->
+	<CMD cmd="function.updateArea" />
+
+	<FUNCTION id="updateArea">
+		<CMD cmd="url = 'http://api.visitkorea.or.kr/openapi/service/rest/KorService/areaCode?' + userVariable.commonParam"/>
+		<CMD cmd="xml = file.read(url)" />
+		<CMD condition="function.checkResultCode(xml)">
+			<CMD cmd="area.dataSource = xml" />
+			<!-- 시/군/구 코드도 함께 업데이트하기 위해 변경 사용자가 변경한 것처럼 이벤트를 날림-->
+			<CMD cmd="area.fireEvent('onChange')" />
+		</CMD> 
+	</FUNCTION>
+	
+	<FUNCTION id="updateSigungu(areaCode)">
+		<CMD cmd="url = 'http://api.visitkorea.or.kr/openapi/service/rest/KorService/areaCode?' + userVariable.commonParam"/>
+		<CMD cmd="url = url + '&amp;areaCode=' + areaCode" />
+		<CMD cmd="xml = file.read(url)" />
+		<CMD condition="function.checkResultCode(xml)" cmd="sigungu.dataSource = xml" />
+	</FUNCTION>
+	
+	<FUNCTION id="checkResultCode(xml)">
+		<CMD cmd="resultCode = xpath.evaluateEx(xml, '//resultCode/text()')"/>
+		<RETURN condition="resultCode == 0" cmd="true" />
+		<CMD cmd="resultMsg = xpath.evaluateEx(xml, '//resultMsg/text()')"/>
+		<CMD cmd="device.systemPopup(resultMsg + '\r\nresultCode : ' + resultCode)" />
+		<RETURN cmd="false"/>
+	</FUNCTION>
+	
+	<FUNCTION id="search">
+		<CMD cmd="url = 'http://api.visitkorea.or.kr/openapi/service/rest/KorService/areaBasedList?' + userVariable.commonParam"/>
+		<CMD cmd="url = url + '&amp;areaCode=' + area.value" />
+		<CMD cmd="url = url + '&amp;sigunguCode=' + sigungu.value" />
+		<CMD cmd="url = url + '&amp;contentTypeId=' + contentType.value" />
+		<CMD cmd="xml = file.read(url)" />
+		<CMD condition="function.checkResultCode(xml)" cmd="tourList.dataSource = xml" />
+	</FUNCTION>
+
+	<FUNCTION id="checkValue(value)">
+		<!-- value 가 없으면 갑춤-->
+		<CMD condition="value" cmd="caller.visible=true" elseCmd="caller.visible=false"/>
+		<RETURN cmd="value" />
+	</FUNCTION>
+	
+	<FUNCTION id="showMap">
+		<CMD cmd="mapx = xpath.evaluate('mapx/text()')" />
+		<CMD cmd="mapy = xpath.evaluate('mapy/text()')" />
+		<CMD cmd="html = file.read('map.htm')" />
+		<CMD cmd="html = string.replace(html, '$LONGITUDE$', mapx)"/>
+		<CMD cmd="html = string.replace(html, '$LATITUDE$', mapy)"/>
+		<CMD cmd="mapTitle.text = xpath.evaluate('title/text()')" />
+		<CMD cmd="mapWebView.src = html" delay="1000"/>
+		<CMD cmd="detailMap.visible = true" />
+	</FUNCTION>
+
+	<FUNCTION id="showOverview">
+		<CMD cmd="contentId = xpath.evaluate('contentid/text()')" />
+		<CMD cmd="firstImage = xpath.evaluate('firstimage/text()')" />
+		<CMD cmd="url = 'http://api.visitkorea.or.kr/openapi/service/rest/KorService/detailCommon?' + userVariable.commonParam"/>
+		<CMD cmd="url = url + '&amp;contentId=' + contentId" />
+		<CMD cmd="url = url + '&amp;overviewYN=Y'" />
+		<CMD cmd="xml = file.read(url)" />
+		<CMD cmd="overview = xpath.evaluateEx(xml, '//overview/text()')" />
+		<!-- overview가 전부 한문단으로 나오면 읽기 힘드므로 '다. ' 기준으로 br 태그를 넣어준다. -->
+		<CMD cmd="overview = string.replace(overview, '다. ', '다.&lt;br/&gt;&lt;br/&gt;&amp;nbsp; ')" />
+		<CMD cmd="html = file.read('overview.htm')" />
+		<CMD cmd="html = string.replace(html, '$OVERVIEW$', overview)" />
+		<CMD cmd="html = string.replace(html, '$IMAGE$', firstImage)" />
+		<CMD cmd="overviewTitle.text = xpath.evaluate('title/text()')" />
+		<CMD cmd="overviewWebView.src = html" />
+		<CMD cmd="detailOverview.visible = true" />
+	</FUNCTION>
+</MOML>
+
+

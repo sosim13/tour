@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<items>
+	<item>
+		<name>관광지</name>
+		<code>12</code>
+	</item>
+	<item>
+		<name>문화시설</name>
+		<code>14</code>
+	</item>
+	<item>
+		<name>행사/공연/축제</name>
+		<code>15</code>
+	</item>
+	<item>
+		<name>여행코스</name>
+		<code>25</code>
+	</item>
+	<item>
+		<name>레포츠</name>
+		<code>28</code>
+	</item>
+	<item>
+		<name>숙박</name>
+		<code>32</code>
+	</item>
+	<item>
+		<name>쇼핑</name>
+		<code>38</code>
+	</item>
+	<item>
+		<name>음식점</name>
+		<code>39</code>
+	</item>
+</items>
+
+

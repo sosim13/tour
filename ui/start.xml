@@ -53,7 +53,7 @@
 
 	<!-- https://www.data.go.kr 에서 오픈API - 국문 관광정보 서비스의 [SERVICE KEY]를 발급 받아야 합니다. -->
 	<!-- 다른 사람의 키를 사용할 경우 트래픽을 초과하거나 변경되면 동작하지 않게됩니다.-->
-	<CMD cmd="serviceKey = 'XAQRkAc4BBj5RWTWfdEX5Oc5ry0o4j74tmxD5R4HhJoegNLrNTlRZl6%2BCW%2BX%2BC28DAwBYq73UvcNcdB6n591bg%3D%3D'" />
+	<CMD cmd="serviceKey = '6xcUt1mwqE0oroPt9wfO8%2BXWW9gLtX4RIfUuOLKIq%2FIzbwVY0KUTnsYRFqxDIPJivQeIt5y7G6yZWDa%2BJg5Pfg%3D%3D'" />
 	<CMD cmd="appName = 'momlTourApiTest'" />
 	<CMD cmd="userVariable.commonParam = 'MobileOS=ETC&amp;MobileApp=' + appName + '&amp;numOfRows=99999&amp;ServiceKey=' + serviceKey"/>
 
